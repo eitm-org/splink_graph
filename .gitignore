@@ -183,6 +183,4 @@ cython_debug/
 
 # graphframes checkpoint dir
 
-
-
-graphframes_tempdir/
+demo.py

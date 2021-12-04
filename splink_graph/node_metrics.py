@@ -79,7 +79,7 @@ example output spark dataframe
     centrality_name = centrality_function.__name__
     ecschema = StructType(
         [
-            StructField("node_id", StringType()),
+            StructField("node_id", LongType()),
             StructField(centrality_name, DoubleType()),
             StructField(cluster_id_colname, LongType()),
         ]
@@ -165,7 +165,7 @@ example output spark dataframe
     """
     ecschema = StructType(
         [
-            StructField("node_id", StringType()),
+            StructField("node_id", LongType()),
             StructField("degree", DoubleType()),
             StructField(cluster_id_colname, LongType()),
         ]

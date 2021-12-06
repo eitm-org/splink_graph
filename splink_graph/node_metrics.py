@@ -13,13 +13,7 @@ from pyspark.sql.types import (
 import pyspark.sql.functions as f
 from pyspark.sql.functions import pandas_udf, PandasUDFType
 
-from networkx.algorithms.centrality import (
-    eigenvector_centrality,
-    harmonic_centrality,
-    katz_centrality,
-    betweenness_centrality,
-    degree_centrality
-)
+from networkx.algorithms.centrality import eigenvector_centrality
 
 
 def node_degree(
@@ -178,7 +172,7 @@ example output spark dataframe
 
 
 def centrality(
-    sparkdf, centrality_function, src="src", dst="dst", cluster_id_colname="cluster_id", 
+    sparkdf, centrality_function, src="src", dst="dst", cluster_id_colname="cluster_id", **kwargs,
 ):
 
     """
@@ -236,7 +230,7 @@ example output spark dataframe
     def centrality_udf(pdf: pd.DataFrame) -> pd.DataFrame:
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst)
-        cent = centrality_function(nxGraph)
+        cent = centrality_function(nxGraph, **kwargs)
         out_df = (
             pd.DataFrame.from_dict(cent, orient="index", columns=[centrality_name])
             .reset_index()

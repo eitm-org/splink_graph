@@ -79,10 +79,9 @@ def nx_connected_components(
 ):
     # Function to use if you have an edge dataframe of up to 2 million rows.
     # For bigger dataframes use graphframes_connected_components function
+    filtered_df = edges_df.filter(f.col("weight")>cc_threshold) 
 
-    pdf = edges_df.toPandas()
-
-    filtered_pdf = pdf[pdf[weight_colname] > cc_threshold]
+    filtered_pdf = filtered_df.toPandas()
 
     nxGraph = nx.Graph()
     nxGraph = nx.from_pandas_edgelist(filtered_pdf, src, dst, weight_colname)

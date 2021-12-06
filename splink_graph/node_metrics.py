@@ -16,7 +16,7 @@ from pyspark.sql.functions import pandas_udf, PandasUDFType
 from networkx.algorithms.centrality import eigenvector_centrality
 
 
-def node_degree(
+def node_level_features(
     sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id",
 ):
 
@@ -61,32 +61,45 @@ example output spark dataframe
     ecschema = StructType(
         [
             StructField("node_id", StringType()),
-            StructField("degree", DoubleType()),
+            StructField("eignen_centrality", DoubleType()),
+            StructField("katz_centrality", DoubleType()),
+            StructField("between_centrality", DoubleType()),
+            StructField("degree_centrality", DoubleType()),
+            StructField("degrees", DoubleType()),
             StructField(cluster_id_colname, LongType()),
         ]
     )
-
     psrc = src
     pdst = dst
-
     @pandas_udf(ecschema, PandasUDFType.GROUPED_MAP)
-    def degree_udf(pdf: pd.DataFrame) -> pd.DataFrame:
+    def udf(pdf: pd.DataFrame) -> pd.DataFrame:
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst)
-        deg = dict(nxGraph.degree())
-        out_df = (
-            pd.DataFrame.from_dict(deg, orient="index", columns=["degree"])
-            .reset_index()
-            .rename(
-                columns={"index": "node_id", "degree": "degree"}
-            )
-        )
-
+        degrees = dict(nxGraph.degree())
+        eignen_centrality = nx.eigenvector_centrality(nxGraph, tol=1e-3)
+        katz_centrality = nx.katz_centrality(nxGraph, tol=1e-2)
+        between_centrality = nx.betweenness_centrality(nxGraph)
+        degree_centrality = nx.degree_centrality(nxGraph)
+        features = [
+            eignen_centrality,
+            katz_centrality,
+            between_centrality,
+            degree_centrality,
+            degrees,
+        ]
+        features_df = pd.DataFrame.from_records(features).T.reset_index()
+        features_df.columns = [
+            'node_id',
+            'eignen_centrality',
+            'katz_centrality',
+            'between_centrality',
+            'degree_centrality',
+            'degrees'
+        ]
         cluster_id = pdf[cluster_id_colname][0]
-        out_df[cluster_id_colname] = cluster_id
-        return out_df
-
-    out = sparkdf.groupby(cluster_id_colname).apply(degree_udf)
+        features_df[cluster_id_colname] = cluster_id
+        return features_df
+    out = sparkdf.groupby(cluster_id_colname).apply(udf)
     return out
 
 
@@ -219,7 +232,7 @@ example output spark dataframe
         [
             StructField("node_id", StringType()),
             StructField(centrality_name, DoubleType()),
-            StructField(cluster_id_colname, LongType()),
+            # StructField(cluster_id_colname, LongType()),
         ]
     )
 
@@ -239,9 +252,9 @@ example output spark dataframe
             )
         )
 
-        cluster_id = pdf[cluster_id_colname][0]
-        out_df[cluster_id_colname] = cluster_id
+        # cluster_id = pdf[cluster_id_colname][0]
+        # out_df[cluster_id_colname] = cluster_id
         return out_df
 
-    out = sparkdf.groupby(cluster_id_colname).apply(centrality_udf)
+    out = sparkdf.apply(centrality_udf)
     return out

@@ -17,12 +17,7 @@ from networkx.algorithms.centrality import eigenvector_centrality
 
 
 def node_level_features(
-    sparkdf,
-    src="src",
-    dst="dst",
-    cluster_id_colname="cluster_id",
-    patch_colname="patch",
-    block_colname="block",
+    sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id",
 ):
 
     """
@@ -33,18 +28,35 @@ def node_level_features(
         distance_colname: distance column name
         cluster_id_colname: Graphframes-created connected components created cluster_id
     Returns:
-        node_id
-        eignen_centrality
-        katz_centrality
-        between_centrality
-        degree_centrality
-        degrees
+        node_id:
+        node_degree
         cluster_id: cluster_id corresponding to the node_id
 
-example input spark dataframe schema
-
-example output spark dataframe schema
-
+example input spark dataframe
+|src|dst|weight|cluster_id|distance|
+|---|---|------|----------|--------|
+|  f|  d|  0.67|         0|   0.329|
+|  f|  g|  0.34|         0|   0.659|
+|  b|  c|  0.56|8589934592|   0.439|
+|  g|  h|  0.99|         0|   0.010|
+|  a|  b|   0.4|8589934592|     0.6|
+|  h|  i|   0.5|         0|     0.5|
+|  h|  j|   0.8|         0|   0.199|
+|  d|  e|  0.84|         0|   0.160|
+|  e|  f|  0.65|         0|    0.35|
+example output spark dataframe
+|node_id|   degree          |cluster_id|
+|-------|-------------------|----------|
+|   b   |  0.707106690085642|8589934592|
+|   c   | 0.5000000644180599|8589934592|
+|   a   | 0.5000000644180599|8589934592|
+|   f   | 0.5746147732828122|         0|
+|   d   | 0.4584903903420785|         0|
+|   g   |0.37778352393858183|         0|
+|   h   |0.27663243805676946|         0|
+|   i   |0.12277029263709134|         0|
+|   j   |0.12277029263709134|         0|
+|   e   | 0.4584903903420785|         0|
     """
     ecschema = StructType(
         [
@@ -85,18 +97,10 @@ example output spark dataframe schema
             'degrees'
         ]
         cluster_id = pdf[cluster_id_colname][0]
-        patch = pdf[patch_colname][0]
-        block = pdf[block_colname][0]
-
         features_df[cluster_id_colname] = cluster_id
-        features_df[patch_colname] = patch
-        features_df[block_colname] = block
         return features_df
-    out = sparkdf.groupby([cluster_id_colname, patch_colname, block_colname]).apply(udf)
+    out = sparkdf.groupby(cluster_id_colname).apply(udf)
     return out
-
-
-
 
 
 

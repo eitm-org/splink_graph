@@ -9,9 +9,9 @@ except ImportError: # for pip <= 9.0.3
     from pip.req import parse_requirements
 
 try:
-    from setuptools import setup
+    from setuptools import setup, find_packages
 except ImportError:
-    from distutils.core import setup
+    from distutils.core import setup, find_packages
 
 with open('README.rst') as readme_file:
     readme = readme_file.read()
@@ -43,9 +43,7 @@ setup(
     author="Xingyao Chen",
     author_email='xchen@eitm.org',
     url='https://github.com/xingyaoc/splink_graph',
-    packages=[
-        'splink_graph',
-    ],
+    packages=find_packages(),
     package_dir={'splink_graph':
                  'splink_graph'},
     include_package_data=True,

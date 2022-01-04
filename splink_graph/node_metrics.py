@@ -17,7 +17,12 @@ from networkx.algorithms.centrality import eigenvector_centrality
 
 
 def node_level_features(
-    sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id",
+    sparkdf,
+    src="src",
+    dst="dst",
+    cluster_id_colname="cluster_id",
+    patch_id_colname="patch",
+    block_id_colname="block",
 ):
 
     """
@@ -67,6 +72,8 @@ example output spark dataframe
             StructField("degree_centrality", DoubleType()),
             StructField("degrees", DoubleType()),
             StructField(cluster_id_colname, LongType()),
+            StructField(patch_id_colname, LongType()),
+            StructField(block_id_colname, LongType()),
         ]
     )
     psrc = src
@@ -97,9 +104,13 @@ example output spark dataframe
             'degrees'
         ]
         cluster_id = pdf[cluster_id_colname][0]
+        patch_id = pdf[patch_id_colname][0]
+        block_id = pdf[block_id_colname][0]
         features_df[cluster_id_colname] = cluster_id
+        features_df[patch_id_colname] = patch_id
+        features_df[block_id_colname] = block_id
         return features_df
-    out = sparkdf.groupby(cluster_id_colname).apply(udf)
+    out = sparkdf.groupby([cluster_id_colname, patch_id_colname, block_id_colname]).apply(udf)
     return out
 
 

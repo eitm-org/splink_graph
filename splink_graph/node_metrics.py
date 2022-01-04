@@ -21,8 +21,8 @@ def node_level_features(
     src="src",
     dst="dst",
     cluster_id_colname="cluster_id",
-    patch_id_colname="patch",
-    block_id_colname="block",
+    patch_id_colname="PATCH",
+    block_id_colname="BLOCK",
 ):
 
     """

@@ -72,8 +72,8 @@ example output spark dataframe
             StructField("degree_centrality", DoubleType()),
             StructField("degrees", DoubleType()),
             StructField(cluster_id_colname, LongType()),
-            StructField(patch_id_colname, LongType()),
-            StructField(block_id_colname, LongType()),
+            StructField(patch_id_colname, StringType()),
+            StructField(block_id_colname, StringType()),
         ]
     )
     psrc = src
@@ -110,7 +110,7 @@ example output spark dataframe
         features_df[patch_id_colname] = patch_id
         features_df[block_id_colname] = block_id
         return features_df
-    out = sparkdf.groupby([cluster_id_colname, patch_id_colname, block_id_colname]).apply(udf)
+    out = sparkdf.groupby([block_id_colname, patch_id_colname, cluster_id_colname]).apply(udf)
     return out
 
 

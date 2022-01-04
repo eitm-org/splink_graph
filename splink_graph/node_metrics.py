@@ -21,8 +21,8 @@ def node_level_features(
     src="src",
     dst="dst",
     cluster_id_colname="cluster_id",
-    patch_id_colname="PATCH",
-    block_id_colname="BLOCK",
+    # patch_id_colname="PATCH",
+    # block_id_colname="BLOCK",
 ):
 
     """
@@ -104,13 +104,13 @@ example output spark dataframe
             'degrees'
         ]
         cluster_id = pdf[cluster_id_colname][0]
-        patch_id = pdf[patch_id_colname][0]
-        block_id = pdf[block_id_colname][0]
+        # patch_id = pdf[patch_id_colname][0]
+        # block_id = pdf[block_id_colname][0]
         features_df[cluster_id_colname] = cluster_id
-        features_df[patch_id_colname] = patch_id
-        features_df[block_id_colname] = block_id
+        # features_df[patch_id_colname] = patch_id
+        # features_df[block_id_colname] = block_id
         return features_df
-    out = sparkdf.groupby([cluster_id_colname, patch_id_colname, block_id_colname]).apply(udf)
+    out = sparkdf.groupby([cluster_id_colname]).apply(udf)
     return out
 
 

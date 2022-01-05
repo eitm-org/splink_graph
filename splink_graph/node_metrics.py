@@ -99,6 +99,7 @@ example output spark dataframe
         features_df = pd.DataFrame.from_records(features).T.reset_index()
         features_df.columns = [
             'node_id',
+            'degrees',
             'clustering_coefficient',
             'closeness_centrality',
             'degree_centrality',

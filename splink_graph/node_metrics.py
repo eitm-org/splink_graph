@@ -21,8 +21,6 @@ def node_level_features(
     src="src",
     dst="dst",
     cluster_id_colname="cluster_id",
-    # patch_id_colname="PATCH",
-    # block_id_colname="BLOCK",
 ):
 
     """
@@ -66,11 +64,13 @@ example output spark dataframe
     ecschema = StructType(
         [
             StructField("node_id", StringType()),
+            StructField("degrees", DoubleType()),
+            StructField("clustering_coefficient", DoubleType()),
+            StructField("closeness_centrality", DoubleType()),
+            StructField("degree_centrality", DoubleType()),
+            StructField("between_centrality", DoubleType()),
             StructField("eignen_centrality", DoubleType()),
             StructField("katz_centrality", DoubleType()),
-            StructField("between_centrality", DoubleType()),
-            StructField("degree_centrality", DoubleType()),
-            StructField("degrees", DoubleType()),
             StructField(cluster_id_colname, LongType())
         ]
     )
@@ -81,25 +81,30 @@ example output spark dataframe
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst)
         degrees = dict(nxGraph.degree())
+        clustering_coefficient = nx.clustering(nxGraph)
+        closeness_centrality = nx.closeness_centrality(nxGraph)
+        degree_centrality = nx.degree_centrality(nxGraph)
+        between_centrality = nx.betweenness_centrality(nxGraph)
         eignen_centrality = nx.eigenvector_centrality(nxGraph, tol=1e-3)
         katz_centrality = nx.katz_centrality(nxGraph, tol=1e-2)
-        between_centrality = nx.betweenness_centrality(nxGraph)
-        degree_centrality = nx.degree_centrality(nxGraph)
         features = [
-            eignen_centrality,
-            katz_centrality,
-            between_centrality,
-            degree_centrality,
             degrees,
+            clustering_coefficient,
+            closeness_centrality,
+            degree_centrality,
+            between_centrality,
+            eignen_centrality,
+            katz_centrality
         ]
         features_df = pd.DataFrame.from_records(features).T.reset_index()
         features_df.columns = [
             'node_id',
-            'eignen_centrality',
-            'katz_centrality',
-            'between_centrality',
+            'clustering_coefficient',
+            'closeness_centrality',
             'degree_centrality',
-            'degrees'
+            'between_centrality',
+            'eignen_centrality',
+            'katz_centrality'
         ]
         cluster_id = pdf[cluster_id_colname][0]
         # patch_id = pdf[patch_id_colname][0]

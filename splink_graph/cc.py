@@ -54,7 +54,7 @@ def graphframes_connected_components(
 
     edges_for_cc = edges_df.filter(f.col(weight_colname) > cc_threshold)
     nodes_for_cc = nodes_from_edge_df(
-        edges_for_cc, src="src", dst="dst", id_colname="id"
+        edges_for_cc, src=src, dst=dst, id_colname="id"
     )
 
     g = GraphFrame(nodes_for_cc, edges_for_cc)
@@ -72,14 +72,14 @@ def nx_connected_components(
     edges_df,
     src="src",
     dst="dst",
-    weight_colname="tf_adjusted_match_prob",
+    weight_colname="weight",
     cluster_id_colname="cluster_id",
     cc_threshold=0.90,
     edgelistdir=None,
 ):
     # Function to use if you have an edge dataframe of up to 2 million rows.
     # For bigger dataframes use graphframes_connected_components function
-    filtered_df = edges_df.filter(f.col("weight")>cc_threshold) 
+    filtered_df = edges_df.filter(f.col(weight_colname)>cc_threshold) 
 
     filtered_pdf = filtered_df.toPandas()
 
@@ -108,8 +108,8 @@ def nx_connected_components(
             idlist.append(n)
             cclist.append(str(netid).zfill(9))
 
-    out = pd.DataFrame(zip(cclist, idlist), columns=["cluster_id", "node_id"])
+    out = pd.DataFrame(zip(cclist, idlist), columns=[cluster_id_colname, "node_id"])
 
-    out["cluster_id"] = out["cluster_id"].astype("int64")
+    out[cluster_id_colname] = out[cluster_id_colname].astype("int64")
 
     return spark.createDataFrame(out)

@@ -29,7 +29,7 @@ def node_level_features(
         src: src column name
         dst: dst column name
         distance_colname: distance column name
-        cluster_id_colname: Graphframes-created connected components created cluster_id
+        cluster_id_colnamnx.from_pandas_edgnx.from_pandas_edgeliste: Graphframes-created connected components created cluster_id
     Returns:
         node_id:
         node_degree
@@ -114,7 +114,7 @@ example output spark dataframe
         # features_df[patch_id_colname] = patch_id
         # features_df[block_id_colname] = block_id
         return features_df
-    out = sparkdf.groupby([cluster_id_colname]).apply(udf)
+    out = sparkdf.groupby(['patch', cluster_id_colname]).apply(udf)
     return out
 
 

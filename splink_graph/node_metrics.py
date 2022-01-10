@@ -114,7 +114,7 @@ example output spark dataframe
         # features_df[patch_id_colname] = patch_id
         # features_df[block_id_colname] = block_id
         return features_df
-    out = sparkdf.groupby(['patch', cluster_id_colname]).apply(udf)
+    out = sparkdf.groupby([cluster_id_colname]).apply(udf)
     return out
 
 

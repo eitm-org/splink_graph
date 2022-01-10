@@ -34,8 +34,8 @@ If you have spark data in a format that can be represented as a network/graph th
 - Another use is to provide support for feature engineering from the subgraphs/clusters for supervised and unsupervised ML downstream uses.
 
 ## How to Install :
-For dependencies and other important technical info so you can run these functions without an issue please consult
-`INSTALL.md` on this repo
+
+pip install splink-graph @ git+https://github.com/eitm-org/splink_graph.git@master
 
 ## Functionality offered :
 
@@ -74,7 +74,13 @@ The output is a row of one or more metrics per node
 
 Node metrics curretnly offered:
 
+- Node degree
+- Clustering Coefficient
+- Closeness Centrality
+- Degree Centrality
+- Between Centrality
 - Eigenvector Centrality
+- Katz Centrality
 - Harmonic centrality
 
 ---

@@ -1,5 +1,5 @@
-import pyspark
 import networkx as nx
+import numpy as np
 import pandas as pd
 from pyspark.sql.types import (
     LongType,
@@ -84,7 +84,7 @@ example output spark dataframe
         clustering_coefficient = nx.clustering(nxGraph)
         closeness_centrality = nx.closeness_centrality(nxGraph)
         degree_centrality = nx.degree_centrality(nxGraph)
-        between_centrality = nx.betweenness_centrality(nxGraph)
+        between_centrality = nx.betweenness_centrality(nxGraph, k=int(np.sqrt(nxGraph.number_of_nodes())))
         eignen_centrality = nx.eigenvector_centrality(nxGraph, tol=1e-3)
         katz_centrality = nx.katz_centrality(nxGraph, tol=1e-2)
         features = [

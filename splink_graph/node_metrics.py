@@ -12,9 +12,29 @@ from pyspark.sql.types import (
 )
 import pyspark.sql.functions as f
 from pyspark.sql.functions import pandas_udf, PandasUDFType
-
+import scipy.sparse.csgraph
 from networkx.algorithms.centrality import eigenvector_centrality
 
+
+def closeness_centrality_scipy(G):
+    A = nx.adjacency_matrix(G).tolil()
+    D = scipy.sparse.csgraph.floyd_warshall( \
+             A, directed=False, unweighted=False)
+    n = D.shape[0]
+    closeness_centrality = {}
+    for r in range(0, n):
+        cc = 0.0
+        possible_paths = list(enumerate(D[r, :]))
+        shortest_paths = dict(filter( \
+            lambda x: not x[1] == np.inf, possible_paths))
+        
+        total = sum(shortest_paths.values())
+        n_shortest_paths = len(shortest_paths) - 1.0
+        if total > 0.0 and n > 1:
+            s = n_shortest_paths / (n - 1)
+            cc = (n_shortest_paths / total) * s
+        closeness_centrality[r] = cc
+    return closeness_centrality
 
 def node_level_features(
     sparkdf,
@@ -82,12 +102,12 @@ example output spark dataframe
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst)
         degrees = dict(nxGraph.degree())
         clustering_coefficient = nx.clustering(nxGraph)
-        closeness_centrality = nx.closeness_centrality(nxGraph)
+        closeness_centrality = nx.closeness_centrality_scipy(nxGraph)
         degree_centrality = nx.degree_centrality(nxGraph)
-        # between_centrality = nx.betweenness_centrality(
-        #     nxGraph,
-        #     k=int(min(np.power(nxGraph.number_of_nodes(), 1./3.), 50.))
-        # )
+        between_centrality = nx.betweenness_centrality(
+            nxGraph,
+            k=int(min(np.power(nxGraph.number_of_nodes(), 1./2.), 1000.))
+        )
         eignen_centrality = nx.eigenvector_centrality(nxGraph, tol=1e-3)
         katz_centrality = nx.katz_centrality(nxGraph, tol=1e-2)
         features = [
@@ -199,80 +219,4 @@ example output spark dataframe
         return out_df
 
     out = sparkdf.groupby(cluster_id_colname).apply(eigenc)
-    return out
-
-
-def centrality(
-    sparkdf, centrality_function, src="src", dst="dst", cluster_id_colname="cluster_id", **kwargs,
-):
-
-    """
-    Args:
-        sparkdf: imput edgelist Spark DataFrame
-        centrality_function: callable centrality function from networkx
-        src: src column name
-        dst: dst column name
-        distance_colname: distance column name
-        cluster_id_colname: Graphframes-created connected components created cluster_id
-    Returns:
-        node_id:
-        <centrality_name>: centrality of cluster cluster_id
-        cluster_id: cluster_id corresponding to the node_id
-
-example input spark dataframe
-|src|dst|weight|cluster_id|distance|
-|---|---|------|----------|--------|
-|  f|  d|  0.67|         0|   0.329|
-|  f|  g|  0.34|         0|   0.659|
-|  b|  c|  0.56|8589934592|   0.439|
-|  g|  h|  0.99|         0|   0.010|
-|  a|  b|   0.4|8589934592|     0.6|
-|  h|  i|   0.5|         0|     0.5|
-|  h|  j|   0.8|         0|   0.199|
-|  d|  e|  0.84|         0|   0.160|
-|  e|  f|  0.65|         0|    0.35|
-example output spark dataframe
-|node_id|   eigen_centrality|cluster_id|
-|-------|-------------------|----------|
-|   b   |  0.707106690085642|8589934592|
-|   c   | 0.5000000644180599|8589934592|
-|   a   | 0.5000000644180599|8589934592|
-|   f   | 0.5746147732828122|         0|
-|   d   | 0.4584903903420785|         0|
-|   g   |0.37778352393858183|         0|
-|   h   |0.27663243805676946|         0|
-|   i   |0.12277029263709134|         0|
-|   j   |0.12277029263709134|         0|
-|   e   | 0.4584903903420785|         0|
-    """
-    centrality_name = centrality_function.__name__
-    ecschema = StructType(
-        [
-            StructField("node_id", StringType()),
-            StructField(centrality_name, DoubleType()),
-            # StructField(cluster_id_colname, LongType()),
-        ]
-    )
-
-    psrc = src
-    pdst = dst
-
-    @pandas_udf(ecschema, PandasUDFType.GROUPED_MAP)
-    def centrality_udf(pdf: pd.DataFrame) -> pd.DataFrame:
-        nxGraph = nx.Graph()
-        nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst)
-        cent = centrality_function(nxGraph, **kwargs)
-        out_df = (
-            pd.DataFrame.from_dict(cent, orient="index", columns=[centrality_name])
-            .reset_index()
-            .rename(
-                columns={"index": "node_id", "eigen_centrality": centrality_name}
-            )
-        )
-
-        # cluster_id = pdf[cluster_id_colname][0]
-        # out_df[cluster_id_colname] = cluster_id
-        return out_df
-
-    out = sparkdf.apply(centrality_udf)
     return out

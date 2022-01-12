@@ -33,7 +33,7 @@ def closeness_centrality_scipy(G):
         if total > 0.0 and n > 1:
             s = n_shortest_paths / (n - 1)
             cc = (n_shortest_paths / total) * s
-        closeness_centrality[r] = cc
+        closeness_centrality[str(r)] = cc
     return closeness_centrality
 
 def node_level_features(

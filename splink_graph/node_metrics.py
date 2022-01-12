@@ -102,7 +102,7 @@ example output spark dataframe
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst)
         degrees = dict(nxGraph.degree())
         clustering_coefficient = nx.clustering(nxGraph)
-        closeness_centrality = nx.closeness_centrality_scipy(nxGraph)
+        closeness_centrality = closeness_centrality_scipy(nxGraph)
         degree_centrality = nx.degree_centrality(nxGraph)
         between_centrality = nx.betweenness_centrality(
             nxGraph,

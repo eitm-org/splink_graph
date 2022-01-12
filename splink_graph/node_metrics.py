@@ -84,10 +84,10 @@ example output spark dataframe
         clustering_coefficient = nx.clustering(nxGraph)
         closeness_centrality = nx.closeness_centrality(nxGraph)
         degree_centrality = nx.degree_centrality(nxGraph)
-        between_centrality = nx.betweenness_centrality(
-            nxGraph,
-            k=int(min(np.power(nxGraph.number_of_nodes(), 1./3.), 50.))
-        )
+        # between_centrality = nx.betweenness_centrality(
+        #     nxGraph,
+        #     k=int(min(np.power(nxGraph.number_of_nodes(), 1./3.), 50.))
+        # )
         eignen_centrality = nx.eigenvector_centrality(nxGraph, tol=1e-3)
         katz_centrality = nx.katz_centrality(nxGraph, tol=1e-2)
         features = [

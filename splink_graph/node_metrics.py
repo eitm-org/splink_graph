@@ -86,7 +86,7 @@ example output spark dataframe
         degree_centrality = nx.degree_centrality(nxGraph)
         between_centrality = nx.betweenness_centrality(
             nxGraph,
-            k=int(min(np.power(nxGraph.number_of_nodes(), 1./3.), 1000.))
+            k=int(min(np.power(nxGraph.number_of_nodes(), 1./3.), 500.))
         )
         eignen_centrality = nx.eigenvector_centrality(nxGraph, tol=1e-3)
         katz_centrality = nx.katz_centrality(nxGraph, tol=1e-2)

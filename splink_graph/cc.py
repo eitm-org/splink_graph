@@ -67,49 +67,31 @@ def graphframes_connected_components(
     return cc
 
 
+
 def nx_connected_components(
-    spark: SparkSession,
-    edges_df,
-    src="src",
+    edges_pdf,
+    src="node_id",
     dst="dst",
     weight_colname="weight",
     cluster_id_colname="cluster_id",
-    cc_threshold=0.90,
-    edgelistdir=None,
+    block_patch_id="block_patch",
+    cc_threshold=0.0,
 ):
-    # Function to use if you have an edge dataframe of up to 2 million rows.
-    # For bigger dataframes use graphframes_connected_components function
-    filtered_df = edges_df.filter(f.col(weight_colname)>cc_threshold) 
-
-    filtered_pdf = filtered_df.toPandas()
-
+    filtered_pdf = edges_pdf[edges_pdf[weight_colname] > cc_threshold]
     nxGraph = nx.Graph()
     nxGraph = nx.from_pandas_edgelist(filtered_pdf, src, dst, weight_colname)
-
     netid = 0
     cclist = []
     idlist = []
-
     for c in nx.connected_components(nxGraph):
         netid = netid + 1  # go to next conn comp id
-
         # create a graph from this connected component
         currentnx = nxGraph.subgraph(c)
-
-        # if we need to write the edgelist of the component to a directory do so.
-        if edgelistdir is not None:
-            os.makedirs(edgelistdir, exist_ok=True)
-            nx.write_edgelist(
-                currentnx, edgelistdir + "/cluster" + str(netid).zfill(9) + "edgelist"
-            )
-
         # append the current cc id and the node id for this component
         for n in currentnx.nodes():
             idlist.append(n)
             cclist.append(str(netid).zfill(9))
-
     out = pd.DataFrame(zip(cclist, idlist), columns=[cluster_id_colname, "node_id"])
-
     out[cluster_id_colname] = out[cluster_id_colname].astype("int64")
-
-    return spark.createDataFrame(out)
+    out[block_patch_id] = edges_pdf[block_patch_id][0]
+    return out
